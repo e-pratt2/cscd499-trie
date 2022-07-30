@@ -46,20 +46,53 @@ public class Trie2 {
 	}
 	
 	private boolean findWord(TrieNode node, String s) {
-		if(s != null) {
-			String rest = s.substring(1); //rest is a substring of s, by excluding the first character in s
-			char ch = s.charAt(0);        //ch is the first letter of s
-			TrieNode child = node.children.get(ch);	//return the child that ch associated with. 
-			if(s.length() == 1 && child != null) //if s contains only one letter, and current node has a child associated with that letter, we find the prefix in Trie!
-				return true;	                 //base case
-			if(child == null)
-				return false;
-			else
-				return findWord(child, rest);    //recursive, In this way, we follow the path of the trie from root down towards leaf
-		}
-		return false;
+		//Simplified function, in terms of findSubtree()
+		//If the subtree for the prefix "s" exists, then the string is contained.
+		return findSubtree(s) != null;
 	}
-	
+
+	private TrieNode findSubtree(String prefix) {
+		if(prefix == null) return this.root;
+
+		TrieNode cur = this.root;
+
+		//For each character in the string, follow cur one level lower.
+		for(char c : prefix.toCharArray()) {
+			//Break if the current node is not found.
+			if(cur == null) break;
+
+			//Step to next level down
+			cur = cur.children.get(c);
+		}
+
+		return cur;
+	}
+
+	public LinkedList<String> wordsPrefixedBy(String prefix) {
+		return this.wordsPrefixedBy(this.root, prefix);
+	}
+	private LinkedList<String> wordsPrefixedBy(TrieNode node, String prefix) {
+		LinkedList<String> strings = new LinkedList<>();
+
+		//Find the node which all words with this prefix are children of
+		TrieNode prefixTree = findSubtree(prefix);
+
+		//Collect all of the words
+		collectSubtree(prefix, prefixTree, strings);
+
+		return strings;
+	}
+	void collectSubtree(String prefixText, TrieNode tree, Collection<String> collection) {
+		if(tree == null) return;
+
+		//If current node is a word, add it to the list.
+		if(tree.aword) collection.add(prefixText);
+
+		//Recursively search all the children, depth-first.
+		tree.children.forEach(
+			(character, subtree) -> collectSubtree(prefixText + character, subtree, collection)
+		);
+	}
 
 	// Usage example
 	public static void main(String[] args) {
@@ -78,7 +111,7 @@ public class Trie2 {
 		System.out.println(tr.findWord("cant"));
 		System.out.println(tr.findWord("hig"));
 		System.out.println(tr.findWord("he"));
-		
+
 		tr.printSorted();
 	}
 }
